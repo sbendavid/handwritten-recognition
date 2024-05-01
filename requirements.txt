@@ -1,0 +1,9 @@
+# For Demo 1
+numpy==1.26.4 
+scipy==1.13.0
+
+# For Demo 2
+numpy==1.26.4
+opencv-python==4.9.0.80
+matplotlib==3.8.4
+tensorflow==2.16.1
