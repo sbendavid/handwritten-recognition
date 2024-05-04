@@ -1,0 +1,117 @@
+import os
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+import tensorflow as tf
+
+# Load MNIST dataset and normalize
+mnist = tf.keras.datasets.mnist
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+x_train = tf.keras.utils.normalize(x_train, axis=1)
+x_test = tf.keras.utils.normalize(x_test, axis=1)
+
+# Build and train the model
+model = tf.keras.models.Sequential([
+    tf.keras.layers.Flatten(input_shape=(28, 28)),
+    tf.keras.layers.Dense(128, activation=tf.nn.relu),
+    tf.keras.layers.Dense(128, activation=tf.nn.relu),
+    tf.keras.layers.Dense(10, activation='softmax')
+])
+model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+model.fit(x_train, y_train, epochs=10)
+
+# Save and evaluate the model
+model.save('handwritten.model.keras')
+loss, accuracy = model.evaluate(x_test, y_test)
+print("Test Loss:", loss)
+print("Test Accuracy:", accuracy)
+
+# Load the model for inference
+model = tf.keras.models.load_model('handwritten.model.keras')
+
+# Predict labels for handwritten digit images
+image_number = 1
+while os.path.isfile(f'digits/digit_{image_number}.png'):
+    try:
+        # Read and preprocess the image
+        img = cv2.imread(f'digits/digit_{image_number}.png', cv2.IMREAD_GRAYSCALE)
+        img = np.invert(img)
+        img = img.reshape(1, 28, 28) / 255.0  # Normalize pixel values
+
+        # Predict the label
+        prediction = model.predict(img)
+        predicted_label = np.argmax(prediction)
+
+        # Display the image and predicted label
+        plt.imshow(img[0], cmap='gray')
+        plt.title(f'Predicted Label: {predicted_label}')
+        plt.axis('off')
+        plt.show()
+
+    except Exception as e:
+        print('Error:', e)
+
+    finally:
+        image_number += 1
+
+
+
+import os
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+import tensorflow as tf
+
+# Load and preprocess MNIST dataset
+mnist = tf.keras.datasets.mnist
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+x_train = tf.keras.utils.normalize(x_train, axis=1)
+x_test = tf.keras.utils.normalize(x_test, axis=1)
+
+# Build and train the model
+model = tf.keras.models.Sequential([
+    tf.keras.layers.Flatten(input_shape=(28, 28)),
+    tf.keras.layers.Dense(128, activation=tf.nn.relu),
+    tf.keras.layers.Dense(128, activation=tf.nn.relu),
+    tf.keras.layers.Dense(10, activation='softmax')
+])
+model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+model.fit(x_train, y_train, epochs=10)
+
+# Save the trained model
+model.save('handwritten_model.keras')
+
+# Evaluate the model on the test set
+loss, accuracy = model.evaluate(x_test, y_test)
+print("Test Loss:", loss)
+print("Test Accuracy:", accuracy)
+
+# Load the saved model
+model = tf.keras.models.load_model('handwritten_model.keras')
+
+# Predict digits from images
+image_number = 1
+while os.path.isfile(f'digits/digit_{image_number}.png'):
+    try:
+        # Load and preprocess the image
+        img = cv2.imread(f'digits/digit_{image_number}.png', cv2.IMREAD_GRAYSCALE)
+        img = cv2.resize(img, (28, 28))
+        img = np.expand_dims(img, axis=0) / 255.0  # Normalize and reshape the image
+        
+        # Make prediction
+        prediction = model.predict(img)
+        
+        # Display prediction
+        predicted_digit = np.argmax(prediction)
+        print(f'Digit {image_number}: Predicted as {predicted_digit}')
+        plt.imshow(img[0], cmap=plt.cm.binary)
+        plt.title(f'Predicted Digit: {predicted_digit}')
+        plt.show()
+        
+    except Exception as e:
+        print(f'Error processing digit_{image_number}: {str(e)}')
+        
+    finally:
+        image_number += 1
